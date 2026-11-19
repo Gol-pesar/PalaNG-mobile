@@ -1,0 +1,615 @@
+MASTER PROMPT — Build a Native Android VPN Client Powered by Xray-core
+
+You are a senior Android engineer, Kotlin architect, networking engineer, and VPN infrastructure developer.
+
+Build a complete, high-performance native Android VPN client powered by the REAL Xray-core engine.
+
+This is a production-oriented Android application, not a UI prototype, not a browser application, and not a simulated proxy client.
+
+1. PROJECT OBJECTIVE
+
+Create a native Android application that routes device traffic through remote proxy servers using Xray-core.
+
+The application must support:
+
+- VLESS
+- VMess
+- Trojan
+- Shadowsocks
+- HTTP Proxy
+- SOCKS5 Proxy
+
+The application must support three configuration import methods:
+
+1. Direct proxy links.
+2. QR code scanning.
+3. Subscription URLs.
+
+The primary operating mode must be a full-device VPN using Android VpnService and a TUN interface.
+
+Application language: Persian (Farsi).
+Layout direction: RTL.
+Architecture: Native Android.
+Programming language: Kotlin.
+UI: Jetpack Compose and Material 3.
+
+Do not use Python, Chaquopy, WebView, Flutter, React Native, or a web-based interface.
+
+2. CRITICAL ENGINEERING REQUIREMENTS
+
+Xray-core must be the actual networking engine.
+
+Do not implement VLESS, VMess, Trojan, or Shadowsocks protocol handling manually.
+
+Do not simulate successful connections.
+
+Do not create fake speed measurements or fake connection states.
+
+Do not use a placeholder engine and claim that the VPN works.
+
+Google AI Studio Android builder does not support compiling Go, C/C++, or Android NDK code. Therefore:
+
+- Generate the complete Kotlin application and Android integration layer.
+- Create a well-defined native engine integration interface.
+- Prepare the project to accept a real, externally built Xray Android AAR/JNI library.
+- Do not invent the API of the native library.
+- Document all required native functions and their expected signatures.
+- Keep the project buildable without the native library, but show an explicit ENGINE_NOT_INSTALLED state.
+- Never report CONNECTED unless the actual engine and VPN tunnel have successfully started.
+
+The final native integration must use a real Xray-core Android build, based on the official upstream source and a verified compatible release.
+
+3. TECHNICAL ARCHITECTURE
+
+Use a clean, modular architecture within Google AI Studio's supported single-module Android project structure.
+
+Required components:
+
+UI Layer
+
+- Jetpack Compose
+- Material 3
+- ViewModel
+- StateFlow
+- Kotlin Coroutines
+- Navigation Compose
+
+Application Layer
+
+- VpnController
+- ConnectionManager
+- ConfigurationManager
+- SubscriptionManager
+- QRCodeManager
+- ProxyLinkParser
+- XrayConfigBuilder
+- StatisticsManager
+- EngineStateManager
+
+Android VPN Layer
+
+- Android VpnService
+- TUN file descriptor management
+- VPN permission handling
+- Foreground service notification
+- Persistent VPN lifecycle management
+- DNS configuration
+- IPv4 and IPv6 routing
+- Reconnection handling
+
+Native Engine Layer
+
+Create an interface named XrayEngineAdapter.
+
+Its responsibilities:
+
+- Initialize Xray-core.
+- Load and validate an Xray JSON configuration.
+- Start the engine.
+- Stop the engine.
+- Restart the engine.
+- Report engine state.
+- Retrieve traffic statistics.
+- Report errors and diagnostic logs.
+- Integrate with Android TUN.
+
+Use the upstream Xray Android TUN integration mechanism when supported by the selected core version, including the documented TUN file descriptor mechanism. If the selected build requires a separate TUN-to-SOCKS bridge, implement a proper native bridge instead.
+
+Do not assume that a generic gomobile library exposes methods it does not actually provide.
+
+Keep the native API isolated behind XrayEngineAdapter so that the actual library can be integrated later without rewriting the UI or application architecture.
+
+4. VPN IMPLEMENTATION
+
+Create a real Android VPN service.
+
+Requirements:
+
+- Extend Android VpnService.
+- Declare the service correctly in AndroidManifest.xml.
+- Request VPN permission through VpnService.prepare().
+- Establish a TUN interface.
+- Support IPv4 and IPv6.
+- Configure DNS servers.
+- Support private DNS and configurable DNS strategies where technically possible.
+- Prevent traffic leaks when the VPN is active.
+- Handle Android VPN lifecycle events.
+- Support connection cancellation.
+- Release all file descriptors and resources correctly.
+- Avoid duplicate VPN service instances.
+- Support foreground service requirements for modern Android versions.
+
+Do not route packets into a dead-end TUN interface.
+
+Every accepted packet must have a valid forwarding path through the real Xray engine or a verified TUN bridge.
+
+Avoid infinite routing loops by protecting the proxy engine's own upstream sockets using the Android VPN protection mechanism.
+
+5. PROTOCOL SUPPORT
+
+Implement configuration parsing and Xray JSON generation for:
+
+VLESS
+
+Support:
+
+- UUID
+- Address
+- Port
+- Encryption
+- Flow
+- TLS
+- REALITY
+- SNI
+- Public key
+- Short ID
+- Fingerprint
+- WebSocket
+- gRPC
+- XHTTP
+- TCP/RAW
+- HTTPUpgrade
+- Path
+- Host
+- Service name
+- Network-specific options
+
+VMess
+
+Support:
+
+- UUID
+- Alter ID
+- Security
+- Address
+- Port
+- TLS
+- SNI
+- WebSocket
+- gRPC
+- TCP/RAW
+- HTTPUpgrade
+- Path
+- Host
+- Network settings
+
+Trojan
+
+Support:
+
+- Password
+- Address
+- Port
+- TLS
+- SNI
+- ALPN
+- WebSocket
+- gRPC
+- TCP/RAW
+- Other supported Xray transports
+
+Shadowsocks
+
+Support:
+
+- Address
+- Port
+- Password
+- Encryption method
+- Supported Xray Shadowsocks cipher methods
+
+HTTP Proxy
+
+Support:
+
+- Address
+- Port
+- Username
+- Password
+- Supported TLS options
+
+SOCKS5 Proxy
+
+Support:
+
+- Address
+- Port
+- Username
+- Password
+- UDP ASSOCIATE where supported
+
+Important: HTTP and SOCKS must be represented as Xray outbound protocols, not incorrectly treated as VLESS-style URI schemes.
+
+Always validate the generated JSON against the actual Xray-core version being integrated.
+
+Do not silently discard unknown configuration parameters.
+
+Preserve supported advanced parameters when importing and exporting configurations.
+
+6. CONFIGURATION IMPORT
+
+Implement a robust configuration importer.
+
+Supported inputs:
+
+- vless://
+- vmess://
+- trojan://
+- ss://
+- socks:// where compatible with the chosen format
+- http://
+- https://
+- Plain-text configuration lists
+- Base64-encoded subscription content
+- Subscription URLs
+- QR codes containing supported links or configuration data
+- Xray JSON configuration files
+
+Requirements:
+
+- Parse multiple configurations from one text input.
+- Support percent-encoded parameters.
+- Handle URL-safe Base64.
+- Handle padding and encoding variations.
+- Validate imported configurations.
+- Detect duplicates.
+- Preserve server names and remarks.
+- Display understandable error messages.
+- Never silently replace a valid configuration with an invalid one.
+
+Create an extensible parser architecture so additional formats can be added later.
+
+For HTTP and SOCKS imports, support documented, unambiguous formats and provide manual configuration as a fallback.
+
+7. SUBSCRIPTION MANAGER
+
+Implement:
+
+- Add subscription URL.
+- Update subscription.
+- Update all subscriptions.
+- Delete subscription.
+- Rename subscription.
+- Display subscription status.
+- Display configuration count.
+- Automatic periodic update with configurable intervals.
+- Manual refresh.
+- Last update timestamp.
+- Network error reporting.
+
+Use OkHttp or an equivalent reliable HTTP client.
+
+Support standard subscription responses, including Base64-encoded and plain-text proxy lists.
+
+Do not upload subscription URLs, passwords, UUIDs, or server configurations to external services.
+
+8. USER INTERFACE DESIGN
+
+Create a premium, modern, minimal Android VPN interface.
+
+Design direction:
+
+- Dark theme by default.
+- Deep navy or charcoal background.
+- Subtle gradients.
+- Elegant green connection indicators.
+- Clean typography.
+- Rounded cards.
+- Smooth animations.
+- Responsive layout.
+- Persian RTL typography and alignment.
+
+HOME SCREEN
+
+Display:
+
+- Application logo and name.
+- Connection status.
+- Large central connect/disconnect button.
+- Selected server name.
+- Selected protocol.
+- Server latency.
+- Download speed.
+- Upload speed.
+- Total downloaded data.
+- Total uploaded data.
+- Connection duration.
+- VPN status indicator.
+
+Connection states:
+
+- DISCONNECTED
+- REQUESTING_PERMISSION
+- CONNECTING
+- CONNECTED
+- RECONNECTING
+- DISCONNECTING
+- ERROR
+- ENGINE_NOT_INSTALLED
+
+Never display CONNECTED until VPN establishment and engine startup have both succeeded.
+
+SERVER SCREEN
+
+Features:
+
+- List of imported servers.
+- Search.
+- Filter by protocol.
+- Sort by name.
+- Sort by latency.
+- Favorite servers.
+- Server selection.
+- Edit configuration.
+- Duplicate configuration.
+- Delete configuration.
+- Share configuration.
+- Test connection.
+
+IMPORT SCREEN
+
+Provide three main actions:
+
+1. Import from clipboard or direct link.
+2. Scan QR code.
+3. Add subscription URL.
+
+Also provide JSON file import.
+
+SETTINGS SCREEN
+
+Include:
+
+- Theme selection.
+- Language selection.
+- DNS configuration.
+- IPv4 / IPv6 options.
+- Per-app VPN routing.
+- Bypass selected applications.
+- Allow selected applications only.
+- Auto-connect.
+- Reconnect after network changes.
+- Battery optimization guidance.
+- Logging level.
+- Subscription update interval.
+
+9. PERFORMANCE REQUIREMENTS
+
+Performance is a critical priority.
+
+The application must be optimized for real Android devices.
+
+Requirements:
+
+- No Python runtime.
+- No Chaquopy.
+- No unnecessary JNI calls per packet.
+- No blocking network operations on the main thread.
+- No busy waiting.
+- No excessive object allocations.
+- No unbounded queues.
+- No unnecessary packet copying.
+- No uncontrolled coroutine creation.
+- Efficient buffer management.
+- Proper cancellation.
+- Correct concurrent access.
+- Avoid memory leaks.
+- Avoid CPU-intensive polling.
+- Minimize battery consumption.
+
+Use native Xray processing for proxy traffic.
+
+Do not implement the packet forwarding loop in Compose or the UI thread.
+
+Do not use artificial speed limits.
+
+Do not enable Mux automatically. Keep advanced transport and Mux settings configurable, respecting protocol compatibility.
+
+10. CONNECTION STATISTICS
+
+Provide real statistics.
+
+Display:
+
+- Current download speed.
+- Current upload speed.
+- Total downloaded bytes.
+- Total uploaded bytes.
+- Connection duration.
+- Connection state.
+
+Use actual engine counters or reliable TUN traffic counters.
+
+Do not generate random statistics.
+
+If the selected Xray build does not expose the required counters, explicitly document the missing capability and implement a valid alternative.
+
+11. SECURITY
+
+- Never hardcode server credentials.
+- Never log UUIDs, passwords, private keys, or subscription URLs.
+- Store sensitive local data securely.
+- Validate imported JSON.
+- Use secure TLS defaults.
+- Avoid trusting invalid certificates.
+- Protect against malformed subscription content.
+- Prevent accidental DNS leaks.
+- Handle cleartext traffic carefully.
+- Do not collect user data.
+- Do not transmit configurations to third-party services.
+
+12. PROJECT FILE STRUCTURE
+
+Organize the project with clearly separated Kotlin packages.
+
+Suggested structure:
+
+app/
+src/main/
+AndroidManifest.xml
+java/
+com/example/xrayclient/
+MainActivity.kt
+
+    ui/
+      screens/
+        HomeScreen.kt
+        ServersScreen.kt
+        ImportScreen.kt
+        SubscriptionScreen.kt
+        SettingsScreen.kt
+      components/
+      theme/
+
+    data/
+      models/
+      database/
+      preferences/
+      repositories/
+
+    domain/
+      managers/
+      parsers/
+      validators/
+
+    vpn/
+      XrayVpnService.kt
+      VpnController.kt
+      TunManager.kt
+      VpnState.kt
+
+    engine/
+      XrayEngineAdapter.kt
+      XrayEngineState.kt
+      XrayConfigBuilder.kt
+      NativeXrayBridge.kt
+
+    statistics/
+      StatisticsManager.kt
+
+    subscriptions/
+      SubscriptionManager.kt
+
+    utils/
+      Base64Utils.kt
+      LinkUtils.kt
+      NetworkUtils.kt
+
+src/main/res/
+
+Also create:
+
+- Complete Gradle configuration.
+- Dependencies.
+- Android permissions.
+- Service declarations.
+- ProGuard rules where needed.
+- Native integration documentation.
+- README.md.
+
+Respect Google AI Studio's single-module Android project limitations.
+
+13. TESTING AND VALIDATION
+
+Create tests for:
+
+- VLESS URI parsing.
+- VMess Base64 JSON parsing.
+- Trojan URI parsing.
+- Shadowsocks SIP002 parsing.
+- HTTP proxy parsing.
+- SOCKS5 parsing.
+- Subscription decoding.
+- QR import.
+- Xray JSON generation.
+- Invalid configurations.
+- Duplicate detection.
+- VPN lifecycle.
+- Connection state transitions.
+- IPv4 and IPv6 handling.
+
+Create mock engine tests for UI development, but strictly separate mock mode from production mode.
+
+A mock engine must never claim that real VPN connectivity exists.
+
+14. DEVELOPMENT WORKFLOW
+
+Work incrementally.
+
+Phase 1:
+Build the complete native Android project, architecture, UI, configuration models, parsers, database, subscription manager, and VPN service.
+
+Phase 2:
+Implement XrayEngineAdapter and document the exact native integration contract.
+
+Phase 3:
+Prepare integration with a real Xray-core Android AAR/JNI library. Do not invent its API.
+
+Phase 4:
+Connect Android VPNService, TUN, and the actual Xray-core engine.
+
+Phase 5:
+Test all six protocols, routing, DNS, IPv4, IPv6, connection recovery, and traffic statistics.
+
+Phase 6:
+Optimize performance and produce a release-ready APK.
+
+15. STRICT DELIVERY RULES
+
+1. Do not generate a superficial demo.
+2. Do not replace Xray-core with a different engine.
+3. Do not pretend an unavailable native library exists.
+4. Do not create fake connection functionality.
+5. Do not leave critical functions as TODOs without documenting them.
+6. Generate complete source files.
+7. Keep code consistent across all project files.
+8. Check imports, dependencies, package names, and AndroidManifest declarations.
+9. Fix compilation errors before considering a phase complete.
+10. Do not remove existing working functionality when modifying files.
+11. Use real upstream documentation when implementing Xray integration.
+12. Clearly distinguish implemented functionality from functionality awaiting native integration.
+
+16. FINAL ACCEPTANCE CRITERIA
+
+The project is accepted only when:
+
+- It builds successfully.
+- It runs as a native Android application.
+- The UI works correctly in Persian RTL.
+- All six proxy types can be imported and represented correctly.
+- Subscription and QR imports work.
+- Android VPN permission works.
+- A real Xray-core engine is integrated.
+- TUN traffic is correctly forwarded.
+- Actual servers can be connected.
+- DNS and IP routing work.
+- Statistics represent real traffic.
+- Disconnecting stops the tunnel and releases resources.
+
+Start by generating Phase 1 and Phase 2.
+
+Before writing code, inspect the current Google AI Studio Android environment and identify any unsupported native integration requirements.
+
+Prioritize a correct, maintainable, high-performance architecture over visual effects or unnecessary features.
+
+Never claim completion of a feature that has not been implemented and verified.

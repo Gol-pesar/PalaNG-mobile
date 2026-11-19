@@ -1,0 +1,6 @@
+{
+  "name": "ایکس‌ری کلاینت",
+  "description": "کلاینت بومی VPN اندروید با هسته Xray-core و پشتیبانی از VLESS، VMess، Trojan، Shadowsocks، HTTP و SOCKS5",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">ایکس‌ری کلاینت</string>
+    <string name="vpn_notification_channel_name">وضعیت اتصال VPN</string>
+    <string name="vpn_notification_channel_desc">اعلان دائمی برای نمایش وضعیت تونل Xray و ترافیک</string>
+    <string name="vpn_notification_title_connected">متصل به تونل Xray</string>
+    <string name="vpn_notification_title_connecting">در حال برقراری اتصال VPN…</string>
+    <string name="vpn_notification_action_disconnect">قطع اتصال</string>
+</resources>
