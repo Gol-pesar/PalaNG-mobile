@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "XrayClient"
+rootProject.name = "PalaNG"
 
 include(":app")

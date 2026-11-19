@@ -1,6 +1,6 @@
 {
-  "name": "ایکس‌ری کلاینت",
-  "description": "کلاینت بومی VPN اندروید با هسته Xray-core و پشتیبانی از VLESS، VMess، Trojan، Shadowsocks، HTTP و SOCKS5",
+  "name": "PalaNG",
+  "description": "PalaNG — high-speed Xray/V2Ray VPN client for Android with Amir, VLESS, VMess, Trojan, Shadowsocks, WireGuard, and Hysteria2 support.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
